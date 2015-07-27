@@ -62,7 +62,7 @@ def argv_list_SEARCH(check_text):
 					print bcolors.FOLDER + "Folder:"+'bookmark_bar' + bcolors.ENDC
 					title_text = "Title:\t"+bookmarks[i]['name']
 					url_text = "URL:\t"+bookmarks[i]['url']
-					print get_coloured_text(title_text, check_text, bcolors.OKBLUE)
+						print get_coloured_text(title_text, check_text, bcolors.OKBLUE)
 					print get_coloured_text(url_text, check_text, bcolors.OKBLUE),'\n'
 	else:
 		print bcolors.BOLD + "All Bookmarks"+ bcolors.ENDC
@@ -85,7 +85,7 @@ def argv_list_SEARCH(check_text):
 				print get_coloured_text(title_text, check_text, bcolors.OKBLUE)
 				print get_coloured_text(url_text, check_text, bcolors.OKBLUE),'\n'
 	print count
-
+-
 def argv_list_COUNT():
 	link_list = {}
 	count = 0
@@ -106,11 +106,15 @@ def argv_list_COUNT():
 for agv in sys.argv:
 	capital_text = capital_text + ' '+ agv
 
-if sys.argv[1] == '--count' or sys.argv[1] == '--c':
+if sys.argv[1] == '--count' or sys.argv[1] == '-c':
 	argv_list_COUNT()
-elif sys.argv[1] == '--search' or sys.argv[1] == '--s':
+elif sys.argv[1] == '--search' or sys.argv[1] == '-s':
 	check_text = sys.argv[2]
 	print check_text
 	argv_list_SEARCH(check_text)
+elif sys.argv[1] == '--folder' or sys.argv[1] == '-f':
+	check_text = sys.argv[2]
+	print check_text
+
 else:
-	print "Error"
+	print "--help"

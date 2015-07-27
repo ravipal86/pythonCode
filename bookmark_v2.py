@@ -4,15 +4,16 @@ import sys
 from os.path import expanduser
 from termcolor import colored
 
-# line = f.readlines()
-
-# p = open('output_json.txt', 'rw+')
-# for i in line:
-# 	p.write(i)
-
 home = expanduser("~")
 new_path = '/.config/google-chrome/Default/Bookmarks'
 path = home + new_path
+
+f = open(path, 'r')
+line = f.readlines()
+
+p = open('output_json.txt', 'rw+')
+for i in line:
+	p.write(i)
 
 my_data = json.loads(open(path).read())
 # print my_data
@@ -67,7 +68,7 @@ def find_links():
 						print "URL:\t",main_root[i]['children'][j]['children'][k]['url'],'\n'
 				else:
 					print "Title:\t",main_root[i]['children'][j]['name']
-					print "URL\t",main_root[i]['children'][j]['url'], '\n'
+					print "URL:\t",main_root[i]['children'][j]['url'], '\n'
 
 
 def find_folder(check_text):
