@@ -7,6 +7,7 @@ from termcolor import colored
 home = expanduser("~")
 new_path = '/.config/google-chrome/Default/Bookmarks'
 path = home + new_path
+check_text = ''
 
 f = open(path, 'r')
 line = f.readlines()
@@ -75,7 +76,21 @@ def find_folder(check_text):
 	main_root = my_data['roots']
 	for i in main_root:
 		if 'type' in main_root[i]:
-			print i
+			print bcolors.FOLDER + 'Default Folder:', main_root[i]['name'] + bcolors.ENDC
+			for j in range(len(main_root[i]['children'])):
+				if main_root[i]['children'][j]['type'] == 'folder':
+					folder_name = main_root[i]['children'][j]['name']
+					if check_text.lower() in folder_name.lower():
+						print bcolors.FOLDER + 'Folder:', main_root[i]['children'][j]['name'] + bcolors.ENDC
+						for k in range(len(main_root[i]['children'][j]['children'])):
+							print main_root[i]['children'][j]['children'][k]['name']
+							print main_root[i]['children'][j]['children'][k]['url'], '\n'
+							# print "Title:\t",get_coloured_text(title_text, check_text, bcolors.OKBLUE)
+							# print "URL:\t",get_coloured_text(url_text, check_text, bcolors.OKBLUE),'\n'
+					elif check_text == 'All':
+						print bcolors.FOLDER + 'Folder:', main_root[i]['children'][j]['name'] + bcolors.ENDC
+					else:
+						print check_text, "named folder not found"
 
 
 
@@ -92,8 +107,19 @@ def count_links():
 					count = count + 1
 	print "No. of Bookmarks:",count
 
-check_text = 'Selenium'
-find_links()
-# find_keyword(check_text)
-# count_links()
-# find_folder(check_text)
+
+if sys.argv[1] == '--count' or sys.argv[1] == '-c':
+	count_links()
+elif sys.argv[1] == '--search' or sys.argv[1] == '-s':
+	check_text = sys.argv[2]
+	print check_text
+	find_keyword(check_text)
+elif sys.argv[1] == '--folder' or sys.argv[1] == '-f':
+	if len(sys.argv) == 2:
+		check_text = 'All'
+	else:
+		check_text = sys.argv[2]
+	find_folder(check_text)
+
+else:
+	print "--help"
