@@ -4,6 +4,7 @@ import sys
 from os.path import expanduser
 from termcolor import colored
 import click
+import lxml.html
 
 home = expanduser("~")
 new_path = '/.config/google-chrome/Default/Bookmarks'
@@ -43,11 +44,10 @@ def get_coloured_text(text,replace_text,color):
 def main_group():
   pass
 
-# Function to search list of folders, search keyword inside particular folder, get list of all folders.
 @main_group.command()
-@click.option('--folder_text', required=False, help='Search for folder.')
-@click.option('--get_list', is_flag=True, help='get list of all folders.')
-@click.option('--search', required=False, help='Search keyword inside folder. Use "" for more than one words.')
+@click.option('--folder_text','-f', required=False, help='Search for folder.')
+@click.option('--get_list','-l', is_flag=True, help='get list of all folders.')
+@click.option('--search','-s', required=False, help='Search keyword inside folder. Use "" for more than one words.')
 def check_folder(folder_text, get_list, search):
     result = get_folder(main_root, abc, xyz, folder_text, get_list, search)
 
@@ -148,3 +148,22 @@ def search_in(root, search):
             map(lambda x: search_in(x, search), root.values())
         elif isinstance(root, list):
             map(lambda x: search_in(x, search), root)
+
+@main_group.command()
+@click.option('--url','-u', required=True, help='Search for folder.')
+@click.option('--folder','-f', required=False, help='Search for folder.')
+@click.option('--add_folder','-s', required=False, help='Search keyword inside folder. Use "" for more than one words.')
+def add_link(url, folder, add_folder):
+    add_dir = {}
+    t = lxml.html.parse(url)
+    title = t.find(".//title").text
+    print title, '\n', url
+
+
+# {
+#    "date_added": "13082046369730794",
+#    "id": "125",
+#    "name": "Bounty 'selenium-webdriver' Questions - Stack Overflow",
+#    "type": "url",
+#    "url": "http://stackoverflow.com/questions/tagged/selenium-webdriver"
+# }
