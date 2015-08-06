@@ -5,6 +5,10 @@ from os.path import expanduser
 from termcolor import colored
 import click
 import lxml.html
+from lxml.html import parse
+import urllib2
+from urllib2 import urlopen
+from bs4 import BeautifulSoup
 import datetime
 import time
 import calendar
@@ -23,6 +27,7 @@ add_dir = {}
 id = 0
 url = ''
 folder = ''
+sync_transv = 0
 
 # f = open(path, 'r')
 # line = f.readlines()
@@ -31,7 +36,7 @@ folder = ''
 # for i in line:
 # 	p.write(i)
 
-my_data = json.loads(open(path).read())
+my_data = json.loads(open('bookmarks_demo.json').read())
 main_root = my_data['roots']
 # print my_data
 
@@ -160,22 +165,20 @@ def search_in(root, search):
 @main_group.command()
 @click.option('--url','-u', required=True, help='Search for folder.')
 @click.option('--folder','-f', required=False, help='Search for folder.')
-@click.option('--add_folder','-a', required=False, help='Search keyword inside folder. Use "" for more than one words.')
+@click.option('--add_folder','-a', required=False, help='Add Folder and Link in that folder')
 def add_link(url, folder, add_folder):
     add_dir = {}
-    t = lxml.html.parse(url)
-    title = t.find(".//title").text
-    print title, '\n', url
+    page = urllib2.urlopen(url).read()
+    soup = BeautifulSoup(page)
+    title = soup.title.string
     text_folder = folder
-    print text_folder
-    print int(time.time() * 1000)
     fixup(my_data, text_folder)
     add_dir['date_added'] = str(int(time.time() * 1000))
     add_dir['id'] = str(id + 1)
     add_dir['name'] = title
     add_dir['type'] = 'url'
     add_dir['url'] = url
-    append_dir(my_data, text_folder, add_dir)
+    append_dir(my_data, text_folder, add_dir, add_folder)
 
 def fixup(root, folder):
     if isinstance(root, dict):
@@ -184,28 +187,49 @@ def fixup(root, folder):
                 global id
                 if id < int(root[key]):
                     id = int(root[key])
+            if key == 'sync_transaction_version':
+                global sync_transv
+                if sync_transv < int(root[key]):
+                    sync_transv = int(root[key])
         map(lambda x: fixup(x, folder), root.values())
     elif isinstance(root, list):
         map(lambda x: fixup(x, folder), root)
 
-def append_dir(root, folder, add_dir):
+def append_dir(root, folder, add_dir, add_folder):
     if isinstance(root, dict):
         for key in root.keys():
             if key == 'type':
                 if root[key] == 'folder':
-                    if folder == '':
-                        if root['name'] == 'Bookmarks bar':
-                            root['children'].append(add_dir)      
-                            json_write()                  
+                    if folder == None:
+                        if add_folder == None:
+                            if root['name'] == 'Bookmarks bar':
+                                root['children'].append(add_dir)
+                                root['date_modified'] = str(int(time.time() * 1000))
+                                # json_write()
+                        else:
+                            if root['name'] == 'Bookmarks bar':
+                                print add_folder
+                                # json_write()
                     elif root['name'] == folder:
                         root['children'].append(add_dir)
-                        json_write()
-        map(lambda x: append_dir(x, folder, add_dir), root.values())
+                        root['date_modified'] = str(int(time.time() * 1000))
+                        # json_write()
+        map(lambda x: append_dir(x, folder, add_dir, add_folder), root.values())
     elif isinstance(root, list):
-        map(lambda x: append_dir(x, folder, add_dir), root)
+        map(lambda x: append_dir(x, folder, add_dir, add_folder), root)
 
 def json_write():
-    with open((path), 'w') as outfile:
+    with open(('bookmarks_demo.json'), 'w') as outfile:
         print "File appending"
         json.dump(my_data, outfile)
     print "Adding Done"
+
+# {
+#    "children":[{}],
+#    "date_added":"",
+#    "date_modified":"",
+#    "id":"",
+#    "name":"",
+#    "sync_transaction_version":"",
+#    "type":"folder"
+# }
