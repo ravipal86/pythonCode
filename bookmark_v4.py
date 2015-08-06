@@ -5,6 +5,10 @@ from os.path import expanduser
 from termcolor import colored
 import click
 import lxml.html
+import datetime
+import time
+import calendar
+from datetime import datetime
 
 home = expanduser("~")
 new_path = '/.config/google-chrome/Default/Bookmarks'
@@ -15,6 +19,10 @@ kbc = []
 xyz = []
 test = []
 count = 0
+add_dir = {}
+id = 0
+url = ''
+folder = ''
 
 # f = open(path, 'r')
 # line = f.readlines()
@@ -152,18 +160,52 @@ def search_in(root, search):
 @main_group.command()
 @click.option('--url','-u', required=True, help='Search for folder.')
 @click.option('--folder','-f', required=False, help='Search for folder.')
-@click.option('--add_folder','-s', required=False, help='Search keyword inside folder. Use "" for more than one words.')
+@click.option('--add_folder','-a', required=False, help='Search keyword inside folder. Use "" for more than one words.')
 def add_link(url, folder, add_folder):
     add_dir = {}
     t = lxml.html.parse(url)
     title = t.find(".//title").text
     print title, '\n', url
+    text_folder = folder
+    print text_folder
+    print int(time.time() * 1000)
+    fixup(my_data, text_folder)
+    add_dir['date_added'] = str(int(time.time() * 1000))
+    add_dir['id'] = str(id + 1)
+    add_dir['name'] = title
+    add_dir['type'] = 'url'
+    add_dir['url'] = url
+    append_dir(my_data, text_folder, add_dir)
 
+def fixup(root, folder):
+    if isinstance(root, dict):
+        for key in root.keys():
+            if key == 'id':
+                global id
+                if id < int(root[key]):
+                    id = int(root[key])
+        map(lambda x: fixup(x, folder), root.values())
+    elif isinstance(root, list):
+        map(lambda x: fixup(x, folder), root)
 
-# {
-#    "date_added": "13082046369730794",
-#    "id": "125",
-#    "name": "Bounty 'selenium-webdriver' Questions - Stack Overflow",
-#    "type": "url",
-#    "url": "http://stackoverflow.com/questions/tagged/selenium-webdriver"
-# }
+def append_dir(root, folder, add_dir):
+    if isinstance(root, dict):
+        for key in root.keys():
+            if key == 'type':
+                if root[key] == 'folder':
+                    if folder == '':
+                        if root['name'] == 'Bookmarks bar':
+                            root['children'].append(add_dir)      
+                            json_write()                  
+                    elif root['name'] == folder:
+                        root['children'].append(add_dir)
+                        json_write()
+        map(lambda x: append_dir(x, folder, add_dir), root.values())
+    elif isinstance(root, list):
+        map(lambda x: append_dir(x, folder, add_dir), root)
+
+def json_write():
+    with open((path), 'w') as outfile:
+        print "File appending"
+        json.dump(my_data, outfile)
+    print "Adding Done"
