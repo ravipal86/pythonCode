@@ -15,11 +15,29 @@ import datetime
 import time
 import calendar
 from datetime import datetime
+import ConfigParser
+
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 home = expanduser("~")
-new_path = '/.config/google-chrome/Default/Bookmarks'
-path = home + new_path
+config_file = home + '/.bm_data.json'
+config_file = os.path.dirname(os.path.realpath("__file__")) + '/.bm_data.json'
+
+path = ''
+
+if os.path.exists(config_file):
+    with open(config_file, 'r') as f:
+        default_path = json.load(f)
+        set_path = default_path['set_path']
+
+        if set_path == 0:
+            path = default_path['default']
+
+        if set_path == 1:
+            path = default_path['new_path']
+else:
+    print 'config file not found'
+
 folder_text = ''
 abc = []
 kbc = []
@@ -41,8 +59,13 @@ sync_transv = 0
 # for i in line:
 # 	p.write(i)
 
-my_data = json.loads(open(path).read())
-main_root = my_data['roots']
+try:
+    my_data = json.loads(open(path).read())
+    main_root = my_data['roots']
+except:
+    my_data = ""
+    main_root = ""
+
 # print my_data
 
 class bcolors:
@@ -298,4 +321,3 @@ def json_write():
     with open((path), 'w') as outfile:
         json.dump(my_data, outfile)
     print "Adding Done"
-
